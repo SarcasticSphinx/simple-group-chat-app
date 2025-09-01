@@ -21,18 +21,21 @@ export class MessagesGateway {
   constructor(private readonly messagesService: MessagesService) {}
 
   @SubscribeMessage('createMessage')
-  create(
+  async create(
     @MessageBody() createMessageDto: CreateMessageDto,
     @ConnectedSocket() client: Socket,
   ) {
-    const message = this.messagesService.create(createMessageDto, client.id);
+    const message = await this.messagesService.create(
+      createMessageDto,
+      client.id,
+    );
     this.server.emit('message', message);
     return message;
   }
 
   @SubscribeMessage('findAllMessages')
-  findAll() {
-    return this.messagesService.findAll();
+  async findAll() {
+    return await this.messagesService.findAll();
   }
 
   @SubscribeMessage('join')

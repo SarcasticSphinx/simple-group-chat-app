@@ -16,7 +16,9 @@ export default function Home() {
   const [socket, setSocket] = useState<Socket | null>(null);
 
   useEffect(() => {
-    const newSocket = io("http://localhost:3001");
+    const newSocket = io(
+      process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3001"
+    );
     setSocket(newSocket);
 
     newSocket.emit("findAllMessages", {}, (response: Message[]) => {

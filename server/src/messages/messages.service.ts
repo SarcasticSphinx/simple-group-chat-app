@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { Message } from './entities/message.entity';
+import { DatabaseService } from '../database/database.service';
 
 @Injectable()
 export class MessagesService {
-  private messages: Message[] = [{ name: 'Toha', text: 'Hey there!' }];
   private clientToUser: Record<string, string> = {};
+
+  constructor(private readonly databaseService: DatabaseService) {}
 
   identify(name: string, clientId: string) {
     this.clientToUser[clientId] = name;
@@ -16,14 +18,27 @@ export class MessagesService {
     return this.clientToUser[clientId] || 'Anonymous';
   }
 
-  create(createMessageDto: CreateMessageDto, clientId: string) {
+  async create(
+    createMessageDto: CreateMessageDto,
+    clientId: string,
+  ): Promise<Message> {
     const name = this.getClientByName(clientId);
-    const message = { ...createMessageDto, name };
-    this.messages.push(message);
+
+    const message = await this.databaseService.message.create({
+      data: {
+        name,
+        text: createMessageDto.text,
+      },
+    });
+
     return message;
   }
 
-  findAll() {
-    return this.messages;
+  async findAll(): Promise<Message[]> {
+    return await this.databaseService.message.findMany({
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
   }
 }
